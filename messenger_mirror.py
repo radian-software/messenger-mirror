@@ -140,7 +140,7 @@ class StateGotMessage(StateConversationList):
         conversation_id = re.search(
             r"/([0-9]+)/?$",
             thread_container.find_element_by_tag_name("a").get_property("href"),
-        ).group(0)
+        ).group(1)
         resp = requests.get(photo_url)
         resp.raise_for_status()
         photo_b64 = str(base64.b64encode(resp.content))
@@ -193,8 +193,9 @@ class Mirror:
             logging.info(f"State: {self.state.__class__.__name__}")
             self.state.action(driver=self.driver, queue=self.queue)
             if (
-                now := datetime.datetime.now()
-            ) - last_update > MM_NOTIFICATION_FREQUENCY:
+                (now := datetime.datetime.now()) - last_update
+            ).total_seconds() > MM_NOTIFICATION_FREQUENCY:
+                last_update = now
                 notifications = []
                 while not self.queue.empty():
                     notifications.append(self.queue.get_nowait())
@@ -208,23 +209,21 @@ class Mirror:
                     sendgrid_client.mail.send.post(
                         request_body=sendgrid_mail.Mail(
                             sendgrid_mail.Email(
-                                email=SENDGRID_FROM_ADDRESS, name="Veidt"
+                                email=SENDGRID_FROM_ADDRESS, name="Messenger"
                             ),
                             sendgrid_mail.To(SENDGRID_TO_ADDRESS),
-                            "[Messenger] Message(s) from "
+                            "Message(s) from "
                             + ", ".join(nf["name"] for nf in notifications),
                             sendgrid_mail.Content(
                                 "text/plain",
-                                self.format_email(
-                                    "\n\n".join(
-                                        f"[{nf['name']}] @ {nf['url']}\n{nf['message']}"
-                                        for nf in notifications
-                                    )
+                                "\n\n".join(
+                                    f"[{nf['name']}] @ {nf['url']}\n{nf['message']}"
+                                    for nf in notifications
                                 ),
                             ),
                         ).get()
                     )
-                self.queue.task_done()
+                    self.queue.task_done()
             time.sleep(5)
 
 
