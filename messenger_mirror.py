@@ -50,6 +50,9 @@ class State(abc.ABC):
 
 
 class StateUnknown(State):
+    def __init__(self):
+        self.last_failure = None
+
     def detect(self, driver, **kw):
         # Always return true, this state will be at the end of the
         # list and will match if nothing else does, hence "unknown".
@@ -59,7 +62,13 @@ class StateUnknown(State):
         if MM_DEBUG:
             breakpoint()
         else:
-            logging.warn("Got into an unknown state, restarting from the beginning")
+            if (
+                self.last_failure
+                and (datetime.datetime.now() - self.last_failure).total_seconds() < 60
+            ):
+                logging.error("Got into an unknown state twice in a minute, exiting")
+                sys.exit(1)
+            logging.warning("Got into an unknown state, restarting from the beginning")
             driver.get(f"https://messenger.com")
 
 
