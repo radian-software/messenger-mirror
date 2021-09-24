@@ -28,6 +28,7 @@ FACEBOOK_EMAIL = os.environ["FACEBOOK_EMAIL"]
 FACEBOOK_PASSWORD = os.environ["FACEBOOK_PASSWORD"]
 FACEBOOK_USER_ID = os.environ["FACEBOOK_USER_ID"]
 MM_DEBUG = bool(os.environ.get("MM_DEBUG", ""))
+MM_HEADLESS = bool(os.environ.get("MM_HEADLESS", ""))
 MM_NOTIFICATION_FREQUENCY = int(os.environ.get("MM_NOTIFICATION_FREQUENCY", "3600"))
 SENDGRID_API_KEY = os.environ["SENDGRID_API_KEY"]
 SENDGRID_FROM_ADDRESS = os.environ["SENDGRID_FROM_ADDRESS"]
@@ -189,7 +190,7 @@ class Mirror:
 
     def __init__(self):
         options = selenium.webdriver.ChromeOptions()
-        if not MM_DEBUG:
+        if not (MM_DEBUG or MM_HEADLESS):
             options.add_argument("--headless")
         self.driver = selenium.webdriver.Chrome(
             executable_path=chromedriver_py.binary_path,
