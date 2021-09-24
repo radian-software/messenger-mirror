@@ -190,7 +190,7 @@ class Mirror:
 
     def __init__(self):
         options = selenium.webdriver.ChromeOptions()
-        if not (MM_DEBUG or MM_HEADLESS):
+        if MM_HEADLESS or not MM_DEBUG:
             options.add_argument("--headless")
         self.driver = selenium.webdriver.Chrome(
             executable_path=chromedriver_py.binary_path,
