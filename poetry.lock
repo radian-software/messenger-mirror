@@ -19,7 +19,7 @@ unicode_backport = ["unicodedata2"]
 
 [[package]]
 name = "chromedriver-py"
-version = "92.0.4515.107"
+version = "94.0.4606.41"
 description = "chromedriver binaries for all platforms"
 category = "main"
 optional = false
@@ -128,7 +128,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "0a469e7a305241cbe57353712d3cf886478b8598da66aa0e632df292e18abeed"
+content-hash = "844d20d9d8be88664860c8eb1a16b78e6abfeeb8fece61fea03ecaa71bb603e0"
 
 [metadata.files]
 certifi = [
@@ -140,8 +140,8 @@ charset-normalizer = [
     {file = "charset_normalizer-2.0.6-py3-none-any.whl", hash = "sha256:5d209c0a931f215cee683b6445e2d77677e7e75e159f78def0db09d68fafcaa6"},
 ]
 chromedriver-py = [
-    {file = "chromedriver-py-92.0.4515.107.tar.gz", hash = "sha256:707afaed50a1dcb9b7743be885ccde4f04950cda6baee03c78cf204e12844b9e"},
-    {file = "chromedriver_py-92.0.4515.107-py3-none-any.whl", hash = "sha256:322d2dca5af9e9913638568e0528ce84b1f744bca372e1ab58f973dc7fcab77a"},
+    {file = "chromedriver-py-94.0.4606.41.tar.gz", hash = "sha256:00ab604c6e32a706d3c36860a623f82b5a0400e223d2dc5e86b87c689e5d56ea"},
+    {file = "chromedriver_py-94.0.4606.41-py3-none-any.whl", hash = "sha256:f554c1f4118f11c65b6838faac98b45df1550a3aa78db2cdacf6329e81eb4e00"},
 ]
 idna = [
     {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
