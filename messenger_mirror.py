@@ -41,21 +41,21 @@ QUEUE_FILE = pathlib.Path(__file__).parent / "notifications_queue"
 
 class State(abc.ABC):
     @abc.abstractmethod
-    def detect(self, driver):
+    def detect(self, driver, **kw):
         pass
 
     @abc.abstractmethod
-    def action(self, driver):
+    def action(self, driver, **kw):
         pass
 
 
 class StateUnknown(State):
-    def detect(self, driver):
+    def detect(self, driver, **kw):
         # Always return true, this state will be at the end of the
         # list and will match if nothing else does, hence "unknown".
         return True
 
-    def action(self, driver):
+    def action(self, driver, **kw):
         if MM_DEBUG:
             breakpoint()
         else:
