@@ -7,6 +7,11 @@ authors = ["Radon Rosborough <radon.neon@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 selenium = "^3.141.0"
+chromedriver-py = "^92.0.4515"
+python-dotenv = "^0.19.0"
+persist-queue = "^0.7.0"
+requests = "^2.26.0"
+sendgrid = "^6.8.2"
 
 [tool.poetry.dev-dependencies]
 
