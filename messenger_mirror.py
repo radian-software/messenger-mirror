@@ -88,7 +88,7 @@ class StateEmailPasswordPage(State):
         self.password_input.send_keys(FACEBOOK_PASSWORD)
         if not self.remember_me_checkbox.is_selected():
             driver.execute_script("arguments[0].click()", self.remember_me_checkbox)
-        self.login_button.click()
+        driver.execute_script("arguments[0].click()", self.login_button)
 
 
 class StateConversationList(State):
