@@ -59,6 +59,7 @@ class StateUnknown(State):
         if MM_DEBUG:
             breakpoint()
         else:
+            logging.warn("Got into an unknown state, restarting from the beginning")
             driver.get(f"https://messenger.com")
 
 
@@ -178,8 +179,12 @@ class Mirror:
     ]
 
     def __init__(self):
+        options = selenium.webdriver.ChromeOptions()
+        if not MM_DEBUG:
+            options.add_argument("--headless")
         self.driver = selenium.webdriver.Chrome(
-            executable_path=chromedriver_py.binary_path
+            executable_path=chromedriver_py.binary_path,
+            options=options,
         )
         self.queue = persistqueue.Queue(QUEUE_FILE)
 
@@ -216,8 +221,8 @@ class Mirror:
                             + ", ".join(nf["name"] for nf in notifications),
                             sendgrid_mail.Content(
                                 "text/plain",
-                                "\n\n".join(
-                                    f"[{nf['name']}] @ {nf['url']}\n{nf['message']}"
+                                "\n".join(
+                                    -f"[{nf['name']}] @ {nf['url']}"
                                     for nf in notifications
                                 ),
                             ),
