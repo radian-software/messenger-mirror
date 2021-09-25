@@ -202,3 +202,8 @@ off to the races.
 * Not guaranteed to be reliable. Race conditions exist where an
   incoming message will never result in a notification, although I
   expect these to be fairly rare.
+* Assumes you have a server where you can run this application 24/7
+  ish. This doesn't have to have any uptime guarantees; a home
+  workstation would work just fine, or you could hypothetically even
+  do it on a laptop, if you can sacrifice the CPU and memory needed to
+  run an instance of Chrome open in the background.
