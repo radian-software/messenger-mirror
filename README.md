@@ -93,8 +93,8 @@ verification was the most robust technique. Once I logged in once
 successfully, my server's IP address appeared to be allowlisted.
 
 After you've got things working in debug mode, set `MM_DEBUG=0` in
-your `.env` file and run the server *ad infinitum*. Here's an example
-`start.sh`:
+your `.env` file, bump up to `MM_NOTIFICATION_FREQUENCY=3600`, and run
+the server *ad infinitum*. Here's an example `start.sh`:
 
 ```
 #!/usr/bin/env bash
@@ -127,3 +127,12 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 ```
+
+In the case that the server hits a page it doesn't know how to parse,
+it'll save a screenshot in the `screenshots` directory in the repo,
+log the error, and attempt a retry. Two fails within 60 seconds will
+cause it to abort, in order to avoid tripping anti-bot detection. The
+server also hosts a simple Flask API locally on port 4209:
+
+* `POST localhost:4209/screenshot/foobar`: will save a screenshot of
+  the current browser window to `screenshots/foobar.png`
