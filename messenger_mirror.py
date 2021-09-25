@@ -3,6 +3,7 @@
 import abc
 import base64
 import datetime
+import json
 import logging
 import os
 import pathlib
@@ -48,9 +49,12 @@ dotenv.load_dotenv()
 FACEBOOK_EMAIL = os.environ["FACEBOOK_EMAIL"]
 FACEBOOK_PASSWORD = os.environ["FACEBOOK_PASSWORD"]
 FACEBOOK_USER_ID = os.environ["FACEBOOK_USER_ID"]
+FACEBOOK_USER_PSID = os.environ.get("FACEBOOK_USER_PSID") or None
+FACEBOOK_PAGE_TOKEN = os.environ.get("FACEBOOK_PAGE_TOKEN") or None
 MM_DEBUG = parse_bool(os.environ.get("MM_DEBUG") or "0")
 MM_HEADLESS = parse_bool(os.environ.get("MM_HEADLESS") or "0")
 MM_NOTIFICATION_FREQUENCY = int(os.environ.get("MM_NOTIFICATION_FREQUENCY") or "3600")
+MM_PING_FREQUENCY = int(os.environ.get("MM_PING_FREQUENCY") or "28800")
 SENDGRID_API_KEY = os.environ["SENDGRID_API_KEY"]
 SENDGRID_FROM_ADDRESS = os.environ["SENDGRID_FROM_ADDRESS"]
 SENDGRID_TO_ADDRESS = os.environ["SENDGRID_TO_ADDRESS"]
@@ -95,12 +99,14 @@ class StateUnknown(State):
             save_screenshot(driver, f"unknown_{ts}")
             if (
                 self.last_failure
-                and (datetime.datetime.now() - self.last_failure).total_seconds() < 60
+                and (datetime.datetime.now() - self.last_failure).total_seconds()
+                < 60 * 5
             ):
-                logging.error("Got into an unknown state twice in a minute, exiting")
+                logging.error("Got into an unknown state twice in 5 minutes, exiting")
                 sys.exit(1)
             logging.warning("Got into an unknown state, restarting from the beginning")
             driver.get(f"https://messenger.com")
+            self.last_failure = datetime.datetime.now()
 
 
 class StateInitial(State):
@@ -138,7 +144,19 @@ class StateConversationList(State):
                 "[aria-label='Chats']"
             )
         except NoSuchElementException:
-            return False
+            try:
+                if "No messages found." not in [
+                    span.text
+                    for span in driver.find_elements_by_css_selector(
+                        "div[id] div[data-testid='MWJewelThreadListContainer'] span[dir='auto']"
+                    )
+                ]:
+                    return False
+            except NoSuchElementException:
+                return False
+            else:
+                self.chats_list = None
+                return True
         else:
             return True
 
@@ -155,7 +173,7 @@ class StateViewingConversation(StateConversationList):
 
 class StateGotMessage(StateConversationList):
     def detect(self, driver, **kw):
-        if not super().detect(driver):
+        if not super().detect(driver) or not self.chats_list:
             return False
         try:
             self.mark_as_read_button = self.chats_list.find_element_by_css_selector(
@@ -240,6 +258,31 @@ class Mirror:
 
         threading.Thread(target=lambda: app.run(port=4209), daemon=True).start()
 
+    def send_pings_foreground(self):
+        while True:
+            time.sleep(MM_PING_FREQUENCY)
+            logging.info(f"Sending ping to PSID {FACEBOOK_USER_PSID}")
+            resp = requests.post(
+                "https://graph.facebook.com/v2.6/me/messages",
+                params={
+                    "access_token": FACEBOOK_PAGE_TOKEN,
+                    "recipient": json.dumps({"id": FACEBOOK_USER_PSID}),
+                    "message": json.dumps({"text": "Hello from Messenger Mirror"}),
+                    "messaging_type": "MESSAGE_TAG",
+                    "tag": "CONFIRMED_EVENT_UPDATE",
+                },
+            )
+            resp.raise_for_status()
+
+    def send_pings(self):
+        if FACEBOOK_USER_PSID and FACEBOOK_PAGE_TOKEN:
+            logging.info(
+                f"Messenger bot pings are enabled with PSID {FACEBOOK_USER_PSID}"
+            )
+            threading.Thread(
+                target=lambda: self.send_pings_foreground(), daemon=True
+            ).start()
+
     def run(self):
         last_update = datetime.datetime.fromtimestamp(0)
         while True:
@@ -263,23 +306,20 @@ class Mirror:
                 notifications = list(grouped_notifications.values())
                 if notifications:
                     logging.info(f"Sending {len(notifications)} notification(s)")
-                    sendgrid_client.mail.send.post(
-                        request_body=sendgrid_mail.Mail(
-                            sendgrid_mail.Email(
-                                email=SENDGRID_FROM_ADDRESS, name="Messenger"
-                            ),
-                            sendgrid_mail.To(SENDGRID_TO_ADDRESS),
-                            "Message(s) from "
-                            + ", ".join(nf["name"] for nf in notifications),
-                            sendgrid_mail.Content(
-                                "text/plain",
-                                "\n".join(
-                                    f"[{nf['name']}] @ {nf['url']}"
-                                    for nf in notifications
+                    for nf in notifications:
+                        sendgrid_client.mail.send.post(
+                            request_body=sendgrid_mail.Mail(
+                                sendgrid_mail.Email(
+                                    email=SENDGRID_FROM_ADDRESS, name="Messenger"
                                 ),
-                            ),
-                        ).get()
-                    )
+                                sendgrid_mail.To(SENDGRID_TO_ADDRESS),
+                                f"Message(s) from {nf['name']}",
+                                sendgrid_mail.Content(
+                                    "text/plain",
+                                    nf["url"],
+                                ),
+                            ).get()
+                        )
                     self.queue.task_done()
             time.sleep(1)
 
@@ -287,6 +327,7 @@ class Mirror:
 def main():
     mirror = Mirror()
     mirror.start_server()
+    mirror.send_pings()
     mirror.run()
 
 

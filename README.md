@@ -54,6 +54,7 @@ directory, as follows:
 FACEBOOK_EMAIL=your.email@example.com
 FACEBOOK_PASSWORD=correct horse battery staple
 FACEBOOK_USER_ID=100006953043135
+FACEBOOK_USER_PSID=4769728284860238
 MM_DEBUG=1
 MM_HEADLESS=0
 MM_NOTIFICATION_FREQUENCY=60
@@ -136,3 +137,54 @@ server also hosts a simple Flask API locally on port 4209:
 
 * `POST localhost:4209/screenshot/foobar`: will save a screenshot of
   the current browser window to `screenshots/foobar.png`
+
+OK, now you've got the basic part set up, there is monitoring to think
+about. Ideally you want to be alerted when the app crashes, because
+then you'll stop getting your notifications. What I've set up is a
+Messenger bot that will repeatedly message me every few hours. (But my
+Gmail has a filter that keeps the notifications from that chat out of
+my inbox.) Then, we can be guaranteed that Messenger Mirror should
+receive a couple messages a day, every day. So all we have to do is
+then set up [Dead Man's Snitch](https://deadmanssnitch.com/) to make
+sure we keep hitting that notification codepath every day, and I'll
+get an email if things are bricked.
+
+Unfortunately, Facebook is the worst thing ever, so setting this up is
+a real Jenga tower. You want to start by creating a Facebook app at
+[Facebook for Developers](https://developers.facebook.com/), enabling
+the Messenger product, clicking through some privacy surveys, filling
+in terms of service URLs etc., creating a Facebook page through the
+developer interface, setting a public username so you can search for
+it later, attaching the page to the app, and generating a page token.
+
+That's the easy part.
+
+So next you want to go to [this Glitch project I set
+up](https://glitch.com/edit/#!/messenger-mirror-psid-extractor) (yes,
+really, Facebook recommends using Glitch for this) and fork it. You'll
+get a new URL of the form `https://something.glitch.me/webhook` for
+your app. You want to go back to Facebook for Developers, enable
+webhooks for your app, fill in the callback URL to point at Glitch,
+generate a verification token and fill it in there, go back to Glitch,
+fill in the `PAGE_ACCESS_TOKEN` and `VERIFY_TOKEN` appropriately (you
+have to do this and restart the app *before* you can exit the webhook
+modal on Facebook), go to Messenger, search for your page using the
+username you configured earlier, send it a message, and check the logs
+on Glitch where you should finally see a user ID printed.
+
+All that effort was necessary to find the "page-specific user ID" (or
+PSID) which is needed in order to use the Messenger API to send
+messages to yourself. I wish I were joking. Anyway, set that as
+`FACEBOOK_USER_PSID` in `.env`.
+
+You can then provision a free Dead Man's Snitch account by creating an
+empty [Heroku](https://heroku.com/) app and adding it as a plugin.
+Yeah, I don't know why or how they allow that, but it works, even if
+you don't use Heroku for anything else. What we want to do is use DMS
+in email mode: set up a filter in your personal email (i.e.
+`SENDGRID_TO_ADDRESS`) that detects notifications from your Facebook
+page, and deletes them after forwarding them to the email address for
+your snitch. Set `MM_PING_FREQUENCY=28800` in `.env` (or substitute
+how many seconds you want between automated messages sent by the
+Messenger bot), fill in `FACEBOOK_PAGE_TOKEN`, and you are off to the
+races.
