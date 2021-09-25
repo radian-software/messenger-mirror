@@ -141,13 +141,13 @@ server also hosts a simple Flask API locally on port 4209:
 OK, now you've got the basic part set up, there is monitoring to think
 about. Ideally you want to be alerted when the app crashes, because
 then you'll stop getting your notifications. What I've set up is a
-Messenger bot that will repeatedly message me every few hours. (But my
-Gmail has a filter that keeps the notifications from that chat out of
-my inbox.) Then, we can be guaranteed that Messenger Mirror should
-receive a couple messages a day, every day. So all we have to do is
-then set up [Dead Man's Snitch](https://deadmanssnitch.com/) to make
-sure we keep hitting that notification codepath every day, and I'll
-get an email if things are bricked.
+Messenger bot that will repeatedly message me every few hours, but
+then the notifications from this specific are emailed to a separate
+email. Then, we can be guaranteed that Messenger Mirror should receive
+a couple messages a day, every day. So all we have to do is then set
+up [Dead Man's Snitch](https://deadmanssnitch.com/) on a separate
+email endpoint to make sure we keep hitting that notification codepath
+every day, and I'll get an email if things are bricked.
 
 Unfortunately, Facebook is the worst thing ever, so setting this up is
 a real Jenga tower. You want to start by creating a Facebook app at
@@ -181,10 +181,9 @@ You can then provision a free Dead Man's Snitch account by creating an
 empty [Heroku](https://heroku.com/) app and adding it as a plugin.
 Yeah, I don't know why or how they allow that, but it works, even if
 you don't use Heroku for anything else. What we want to do is use DMS
-in email mode: set up a filter in your personal email (i.e.
-`SENDGRID_TO_ADDRESS`) that detects notifications from your Facebook
-page, and deletes them after forwarding them to the email address for
-your snitch. Set `MM_PING_FREQUENCY=28800` in `.env` (or substitute
-how many seconds you want between automated messages sent by the
-Messenger bot), fill in `FACEBOOK_PAGE_TOKEN`, and you are off to the
-races.
+in email mode: set `SENDGRID_TO_ADDRESS_FOR_PINGS` to the email
+address for your snitch. (Note that this requires your Messenger bot
+is called `Messenger Mirror`.) Set `MM_PING_FREQUENCY=28800` in `.env`
+(or substitute how many seconds you want between automated messages
+sent by the Messenger bot), fill in `FACEBOOK_PAGE_TOKEN`, and you are
+off to the races.

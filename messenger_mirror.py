@@ -58,6 +58,7 @@ MM_PING_FREQUENCY = int(os.environ.get("MM_PING_FREQUENCY") or "28800")
 SENDGRID_API_KEY = os.environ["SENDGRID_API_KEY"]
 SENDGRID_FROM_ADDRESS = os.environ["SENDGRID_FROM_ADDRESS"]
 SENDGRID_TO_ADDRESS = os.environ["SENDGRID_TO_ADDRESS"]
+SENDGRID_TO_ADDRESS_FOR_PINGS = os.environ.get("SENDGRID_TO_ADDRESS") or None
 
 sendgrid_client = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY).client
 
@@ -312,7 +313,14 @@ class Mirror:
                                 sendgrid_mail.Email(
                                     email=SENDGRID_FROM_ADDRESS, name="Messenger"
                                 ),
-                                sendgrid_mail.To(SENDGRID_TO_ADDRESS),
+                                sendgrid_mail.To(
+                                    (
+                                        SENDGRID_TO_ADDRESS_FOR_PINGS
+                                        if nf["name"] == "Messenger Mirror"
+                                        else None
+                                    )
+                                    or SENDGRID_TO_ADDRESS
+                                ),
                                 f"Message(s) from {nf['name']}",
                                 sendgrid_mail.Content(
                                     "text/plain",
