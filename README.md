@@ -186,3 +186,19 @@ is called `Messenger Mirror`.) Set `MM_PING_FREQUENCY=28800` in `.env`
 (or substitute how many seconds you want between automated messages
 sent by the Messenger bot), fill in `FACEBOOK_PAGE_TOKEN`, and you are
 off to the races.
+
+## Limitations
+
+* Does not send you message bodies or profile pictures even though
+  this information is gathered. Just tells you what conversation(s)
+  have updates, and links you to them. Optimized for the case of
+  people migrating off Messenger.
+* May run into SendGrid free tier limits for large message volumes.
+  Again, optimized for the case of people migrating off Messenger.
+* Screws with message unread status (messages are marked as read as
+  soon as they are processed and the notification is queued, even
+  before any email is sent), so people may think you have seen their
+  message before you have actually have.
+* Not guaranteed to be reliable. Race conditions exist where an
+  incoming message will never result in a notification, although I
+  expect these to be fairly rare.
