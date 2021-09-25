@@ -285,7 +285,7 @@ class Mirror:
             ).start()
 
     def run(self):
-        last_update = datetime.datetime.fromtimestamp(0)
+        last_update = None
         while True:
             for state in Mirror.ALL_STATES:
                 if state.detect(driver=self.driver):
@@ -293,10 +293,14 @@ class Mirror:
                     break
             logging.info(f"State: {self.state.__class__.__name__}")
             self.state.action(driver=self.driver, queue=self.queue)
-            if (
-                (now := datetime.datetime.now()) - last_update
+            if self.queue.empty():
+                pass
+            elif last_update is None:
+                last_update = datetime.datetime.now()
+            elif (
+                datetime.datetime.now() - last_update
             ).total_seconds() > MM_NOTIFICATION_FREQUENCY:
-                last_update = now
+                last_update = None
                 notifications = []
                 while not self.queue.empty():
                     notifications.append(self.queue.get_nowait())
