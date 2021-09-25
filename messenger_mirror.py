@@ -274,7 +274,7 @@ class Mirror:
                             sendgrid_mail.Content(
                                 "text/plain",
                                 "\n".join(
-                                    -f"[{nf['name']}] @ {nf['url']}"
+                                    f"[{nf['name']}] @ {nf['url']}"
                                     for nf in notifications
                                 ),
                             ),
