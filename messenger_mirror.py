@@ -174,7 +174,7 @@ class StateWaitingForMessages(StateConversationList):
         return super().detect(driver)
 
     def action(self, driver, **kw):
-        pass
+        time.sleep(60)
 
 
 class Mirror:
@@ -239,7 +239,7 @@ class Mirror:
                         ).get()
                     )
                     self.queue.task_done()
-            time.sleep(5)
+            time.sleep(1)
 
 
 def main():
