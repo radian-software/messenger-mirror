@@ -7,12 +7,14 @@ import logging
 import os
 import pathlib
 import re
+import threading
 import time
 import sys
 import urllib.parse
 
 import chromedriver_py
 import dotenv
+import flask
 import persistqueue
 import requests
 from selenium.common.exceptions import NoSuchElementException
@@ -59,6 +61,13 @@ sendgrid_client = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY).client
 QUEUE_FILE = pathlib.Path(__file__).parent / "notifications_queue"
 
 
+def save_screenshot(driver, name):
+    screenshots_dir = pathlib.Path(__file__).parent / "screenshots"
+    screenshots_dir.mkdir(exist_ok=True)
+    screenshot_file = screenshots_dir / f"{name}.png"
+    driver.save_screenshot(str(screenshot_file))
+
+
 class State(abc.ABC):
     @abc.abstractmethod
     def detect(self, driver, **kw):
@@ -82,6 +91,8 @@ class StateUnknown(State):
         if MM_DEBUG:
             breakpoint()
         else:
+            ts = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+            save_screenshot(driver, f"unknown_{ts}")
             if (
                 self.last_failure
                 and (datetime.datetime.now() - self.last_failure).total_seconds() < 60
@@ -212,11 +223,22 @@ class Mirror:
         if MM_HEADLESS or not MM_DEBUG:
             options.add_argument("--headless")
         options.add_argument("--user-data-dir=user")
+        options.add_argument("--window-size=3840,2160")
         self.driver = selenium.webdriver.Chrome(
             executable_path=chromedriver_py.binary_path,
             options=options,
         )
         self.queue = persistqueue.Queue(QUEUE_FILE)
+
+    def start_server(self):
+        app = flask.Flask(__name__)
+
+        @app.route("/screenshot/<name>", methods=["POST"])
+        def screenshot(name):
+            save_screenshot(self.driver, name)
+            return f"screenshot saved under {name}.png"
+
+        threading.Thread(target=lambda: app.run(port=4209), daemon=True).start()
 
     def run(self):
         last_update = datetime.datetime.fromtimestamp(0)
@@ -264,6 +286,7 @@ class Mirror:
 
 def main():
     mirror = Mirror()
+    mirror.start_server()
     mirror.run()
 
 

@@ -1,4 +1,5 @@
 .env
 __pycache__
 notifications_queue
+screenshots
 user
