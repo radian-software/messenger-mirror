@@ -21,15 +21,34 @@ import sendgrid
 import sendgrid.helpers.mail as sendgrid_mail
 
 
+def parse_bool(val):
+    val = val.lower()
+    if (
+        val.startswith("y")
+        or val.startswith("t")
+        or val.startswith("1")
+        or val.startswith("on")
+    ):
+        return True
+    if (
+        val.startswith("n")
+        or val.startswith("f")
+        or val.startswith("0")
+        or val.startswith("off")
+    ):
+        return False
+    raise ValueError(f"can't interpret boolean {val}")
+
+
 logging.basicConfig(level=logging.INFO)
 dotenv.load_dotenv()
 
 FACEBOOK_EMAIL = os.environ["FACEBOOK_EMAIL"]
 FACEBOOK_PASSWORD = os.environ["FACEBOOK_PASSWORD"]
 FACEBOOK_USER_ID = os.environ["FACEBOOK_USER_ID"]
-MM_DEBUG = bool(os.environ.get("MM_DEBUG", ""))
-MM_HEADLESS = bool(os.environ.get("MM_HEADLESS", ""))
-MM_NOTIFICATION_FREQUENCY = int(os.environ.get("MM_NOTIFICATION_FREQUENCY", "3600"))
+MM_DEBUG = parse_bool(os.environ.get("MM_DEBUG") or "0")
+MM_HEADLESS = parse_bool(os.environ.get("MM_HEADLESS") or "0")
+MM_NOTIFICATION_FREQUENCY = int(os.environ.get("MM_NOTIFICATION_FREQUENCY") or "3600")
 SENDGRID_API_KEY = os.environ["SENDGRID_API_KEY"]
 SENDGRID_FROM_ADDRESS = os.environ["SENDGRID_FROM_ADDRESS"]
 SENDGRID_TO_ADDRESS = os.environ["SENDGRID_TO_ADDRESS"]
@@ -75,7 +94,7 @@ class StateUnknown(State):
 
 class StateInitial(State):
     def detect(self, driver, **kw):
-        return not driver.title
+        return driver.title in {"", "New Tab"}
 
     def action(self, driver, **kw):
         driver.get(f"https://messenger.com")
@@ -192,6 +211,7 @@ class Mirror:
         options = selenium.webdriver.ChromeOptions()
         if MM_HEADLESS or not MM_DEBUG:
             options.add_argument("--headless")
+        options.add_argument("--user-data-dir=user")
         self.driver = selenium.webdriver.Chrome(
             executable_path=chromedriver_py.binary_path,
             options=options,
