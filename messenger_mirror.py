@@ -178,7 +178,7 @@ class StateGotMessage(StateConversationList):
             return False
         try:
             self.mark_as_read_button = self.chats_list.find_element_by_css_selector(
-                "[aria-label='Mark as Read']"
+                "[aria-label='Mark as read']"
             )
         except NoSuchElementException:
             return False
