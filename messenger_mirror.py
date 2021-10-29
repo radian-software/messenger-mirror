@@ -320,7 +320,7 @@ class Mirror:
                                 sendgrid_mail.To(
                                     (
                                         SENDGRID_TO_ADDRESS_FOR_PINGS
-                                        if nf["name"] == "Messenger Mirror"
+                                        if "Messenger Mirror" in nf["name"]
                                         else None
                                     )
                                     or SENDGRID_TO_ADDRESS
