@@ -1,5 +1,8 @@
 # Messenger Mirror
 
+**DEPRECATED: Facebook blocked me. Thanks Mark. I now use
+[Unzuckify](https://github.com/raxod502/unzuckify) instead.**
+
 This repository has a small Python application which will allow you to
 receive an email notification when somebody sends you a Facebook
 message.
@@ -153,8 +156,8 @@ a real Jenga tower. You want to start by creating a Facebook app at
 [Facebook for Developers](https://developers.facebook.com/), enabling
 the Messenger product, clicking through some privacy surveys, filling
 in terms of service URLs etc., creating a Facebook page through the
-developer interface, setting a public username so you can search for
-it later, attaching the page to the app, and generating a page token.
+developer interface (pick a name you can search for later), attaching
+the page to the app, and generating a page token.
 
 That's the easy part.
 
