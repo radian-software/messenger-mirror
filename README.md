@@ -1,7 +1,7 @@
 # Messenger Mirror
 
 **DEPRECATED: Facebook blocked me. Thanks Mark. I now use
-[Unzuckify](https://github.com/raxod502/unzuckify) instead.**
+[Unzuckify](https://github.com/radian-software/unzuckify) instead.**
 
 This repository has a small Python application which will allow you to
 receive an email notification when somebody sends you a Facebook
